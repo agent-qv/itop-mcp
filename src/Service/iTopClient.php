@@ -1,0 +1,64 @@
+<?php
+namespace App\Service;
+
+use Symfony\Bundle\SecurityBundle\Security;
+use Psr\Log\LoggerInterface;
+
+class iTopClient implements iTopClientInterface
+{
+    public function __construct(private Security $security, private LoggerInterface $mcpLogger, private string $iTopUrl)
+    {
+        
+    }
+    
+    public function postJsonToItop(string $json): string
+    {
+        $token = $this->security->getUser()->getUserIdentifier();
+        $postData = [
+            'version' => '1.4',
+            'auth_token' => $token,
+            'json_data' => $json,
+        ];
+        $this->mcpLogger->debug("iTopClient, POSTing to URL: '{$this->iTopUrl}'", ['json_data' => $json]);
+        // Default options, can be overloaded/extended with the 4th parameter of this method, see above $aCurlOptions
+        $options = [
+            CURLOPT_RETURNTRANSFER => true,     // return the content of the request
+            CURLOPT_HEADER         => false,    // don't return the headers in the output
+            CURLOPT_FOLLOWLOCATION => true,     // follow redirects
+            CURLOPT_ENCODING       => "",       // handle all encodings
+            CURLOPT_USERAGENT      => "MCP-server", // who am i
+            CURLOPT_AUTOREFERER    => true,     // set referer on redirect
+            CURLOPT_CONNECTTIMEOUT => 120,      // timeout on connect
+            CURLOPT_TIMEOUT        => 120,      // timeout on response
+            CURLOPT_MAXREDIRS      => 10,       // stop after 10 redirects
+            CURLOPT_SSL_VERIFYPEER => false,    // Disabled SSL Cert checks
+            CURLOPT_POST           => count($postData),
+            CURLOPT_POSTFIELDS     => http_build_query($postData),
+        ];
+        
+        $ch = curl_init($this->iTopUrl);
+        curl_setopt_array($ch, $options);
+        $response = curl_exec($ch);
+        $iErr = curl_errno($ch);
+        $sErrMsg = curl_error($ch);
+        $info = curl_getinfo($ch);
+        curl_close($ch);
+ 
+        if ($iErr !== 0) {
+            $this->mcpLogger->error("Problem opening URL: '{$this->iTopUrl}', $sErrMsg");
+            throw new \Exception("Problem opening URL: '{$this->iTopUrl}', $sErrMsg");
+        }
+        if ($info['http_code'] !== 200)
+        {
+            $this->mcpLogger->error("Problem opening URL: '{$this->iTopUrl}', got a response code of {$info['http_code']}", ['body' => $response]);
+            throw new \Exception("Problem opening URL: '{$this->iTopUrl}', got a response code of {$info['http_code']}");
+        }
+        $this->mcpLogger->debug("iTopClient,response", ['response' => $response]);
+        return $response;
+    }
+    
+    public function canConnect(): bool
+    {
+        return (null !== $this->security->getUser());
+    }
+}

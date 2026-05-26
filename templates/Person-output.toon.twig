@@ -1,0 +1,12 @@
+{% if json.objects === null %}
+Sorry, no such Person exists in iTop.
+{% else %}
+{% for person in json.objects %}
+class Person:
+  id,name,email,org_id
+
+Person {
+  {{person.key}}, "{{person.fields.friendlyname}}", {{person.fields.email}}, {{person.fields.org_id}}
+}
+{% endfor %}
+{% endif %}

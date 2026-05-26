@@ -1,0 +1,6 @@
+{
+  "operation":"core/get",
+  "class": "UserRequest",
+  "key": "SELECT UserRequest AS U JOIN Person AS P ON U.caller_id = P.id WHERE P.email='{{caller_email}}'{% if statuses !== ''%} AND U.status IN({{ statuses }}){% endif%}{% if start_date !== '' %} AND U.start_date {{ condition }} '{{start_date}}'{% endif%}",
+  "output_fields": "id,ref,title,status,caller_id_friendlyname,org_id_friendlyname,priority"
+}

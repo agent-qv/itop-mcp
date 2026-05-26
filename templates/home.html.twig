@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>iTop MCP Server Help</title>
+        <style>
+        body {
+          margin: 1em;
+          font-size: 12pt;
+          font-family: Arial,Helvetica,Sans-Serif;
+        }
+        pre {
+            background-color: #eeeeee;
+            padding: 1rem;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>iTop MCP Server</h1>
+        <p>Congratulations, you have installed your MCP server to interact with iTop.</p>
+        {% if iTopUrl === '' %}
+        <p>To complete your configuration, create a file '<tt>.env.local</tt>' in the directory '<tt>{{ projectDir }}</tt>' with the following content:
+        <pre>
+#{{projectDir}}/.env.local
+### iTop URL ###
+APP_ITOP_URL=https://url-to-your-itop-instance
+###
+</pre>
+        </p>
+        <p><button onclick="javascript:window.location.reload();">Refresh</button></p>
+        {% else %}
+        <p>The MCP server is configured to interact with iTop located at: <a href="{{iTopUrl}}" target="_blank">{{iTopUrl}}</a> {% if http_code === 200 %}[✅ Ok]{% else %}[❌ KO, HTTP code: {{ http_code }}]{% endif %}</p>
+        <ol>To use the MCP server in your favorite AI agent:
+        <li>Create either an Application Token or a Personal Token in iTop, with the desired profiles.</li>
+        <li>Configure your AI agent with the following information:
+        <pre>
+"mcpServers": {
+    "itop-mcp-server": {
+        "type": "streamable-http",
+        "url": "{{mcpUri}}",
+        "headers": {
+           "Authorization: Bearer =======YOUR-ITOP-TOKEN-HERE====="
+        }
+    }
+}</pre>
+        </li>
+        </ol>
+        {% endif %}
+    </body>
+</html>

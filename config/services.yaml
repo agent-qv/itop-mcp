@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+# See also https://symfony.com/doc/current/service_container/import.html
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    app.itop_url: '%env(APP_ITOP_URL)%'
+    app.datamodel_file: '%kernel.project_dir%/%env(APP_DATAMODEL_FILE)%'
+    app.language: '%env(APP_LANGUAGE)%'
+    services:
+        _defaults:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            string $iTopUrl: '%app.itop_url%'
+            string $projectDir: '%kernel.project_dir%'
+            string $datamodelFile: '%app.datamodel_file%'
+            string $language: '%app.language%'
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    app.itopclient:
+        class: App\Service\iTopClient
+    app.datamodel_service:
+            class: App\Service\DatamodelService
+    
+    # this is the service's id
+    mcp.server.builder:
+        class: App\Capability\iTopBuilder
+        # you CAN still use autowiring: we just want to show what it looks like without
+        autowire: true
+        calls:
+          - setPaginationLimit: ['%mcp.pagination_limit%']
+          - setInstructions: ['%mcp.instructions%']
+          - setEventDispatcher: ['@event_dispatcher']
+          - setRegistry: ['@mcp.registry']
+          - setSession: ['@mcp.session.store']
+          #- setDiscovery: ['%kernel.project_dir%', '%mcp.discovery.scan_dirs%', '%mcp.discovery.exclude_dirs%']
+          - setLogger: ['@logger']

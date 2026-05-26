@@ -1,0 +1,12 @@
+{% if json.objects === null %}
+Sorry, no such UserRequest exists in iTop.
+{% else %}
+{% for obj in json.objects %}
+class UserRequest:
+  id,ref,title,status,caller_id_friendlyname,org_id_friendlyname,priority
+
+UserRequest {
+  {{obj.key}}, {{obj.fields.ref}}, "{{obj.fields.title|e('js')}}", {{obj.fields.status}}, "{{obj.fields.caller_id_friendlyname|e('js')}}" , "{{obj.fields.org_id_friendlyname|e('js')}}", {{obj.fields.priority}}
+}
+{% endfor %}
+{% endif %}

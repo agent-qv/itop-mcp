@@ -1,0 +1,16 @@
+{% if json.objects === null %}
+Sorry, no such object exists in iTop.
+{% else %}
+{% if json.objects %}
+Objects:
+  id, class, friendlyname
+
+Objects {
+{% for obj in json.objects %}
+  {{obj.key}}, {{obj.class}}, {{ obj.fields.friendlyname ~}}
+{% endfor ~%}
+}
+{% else %}
+The result is an empty list. No object found.
+{% endif %}
+{% endif %}

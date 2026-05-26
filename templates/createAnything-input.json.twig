@@ -1,0 +1,11 @@
+{
+  "operation":"core/create",
+  "class":"{{ class }}",
+  "output_fields": "*",
+  "fields": {
+{% for code, value in fields %}
+    "{{ code }}":"{{ value }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+  },
+  "comment": "Created via the MCP server"
+}
