@@ -19,7 +19,7 @@ class iTopClient implements iTopClientInterface
             'auth_token' => $token,
             'json_data' => $json,
         ];
-        $this->mcpLogger->debug("iTopClient, POSTing to URL: '{$this->iTopUrl}'", ['json_data' => $json]);
+        $this->mcpLogger->debug("iTopClient, POSTing to URL: '".$this->getRestEndpointUrl()."'", ['json_data' => $json]);
         // Default options, can be overloaded/extended with the 4th parameter of this method, see above $aCurlOptions
         $options = [
             CURLOPT_RETURNTRANSFER => true,     // return the content of the request
@@ -36,7 +36,7 @@ class iTopClient implements iTopClientInterface
             CURLOPT_POSTFIELDS     => http_build_query($postData),
         ];
         
-        $ch = curl_init($this->iTopUrl);
+        $ch = curl_init($this->getRestEndpointUrl());
         curl_setopt_array($ch, $options);
         $response = curl_exec($ch);
         $iErr = curl_errno($ch);
@@ -45,13 +45,13 @@ class iTopClient implements iTopClientInterface
         curl_close($ch);
  
         if ($iErr !== 0) {
-            $this->mcpLogger->error("Problem opening URL: '{$this->iTopUrl}', $sErrMsg");
-            throw new \Exception("Problem opening URL: '{$this->iTopUrl}', $sErrMsg");
+            $this->mcpLogger->error("Problem opening URL: '".$this->getRestEndpointUrl()."', $sErrMsg");
+            throw new \Exception("Problem opening URL: '".$this->getRestEndpointUrl()."', $sErrMsg");
         }
         if ($info['http_code'] !== 200)
         {
-            $this->mcpLogger->error("Problem opening URL: '{$this->iTopUrl}', got a response code of {$info['http_code']}", ['body' => $response]);
-            throw new \Exception("Problem opening URL: '{$this->iTopUrl}', got a response code of {$info['http_code']}");
+            $this->mcpLogger->error("Problem opening URL: '".$this->getRestEndpointUrl()."', got a response code of {$info['http_code']}", ['body' => $response]);
+            throw new \Exception("Problem opening URL: '".$this->getRestEndpointUrl()."', got a response code of {$info['http_code']}");
         }
         $this->mcpLogger->debug("iTopClient,response", ['response' => $response]);
         return $response;
@@ -60,5 +60,14 @@ class iTopClient implements iTopClientInterface
     public function canConnect(): bool
     {
         return (null !== $this->security->getUser());
+    }
+    
+    public function getRestEndpointUrl(): string
+    {
+        $suffix = '/webservices/rest.php';
+        if (strpos($this->iTopUrl, $suffix) === false) {
+            return trim($this->iTopUrl, '/').$suffix;
+        }
+        return $this->iTopUrl;
     }
 }
