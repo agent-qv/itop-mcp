@@ -56,7 +56,7 @@ class DatamodelService
         foreach($nodes as $node) {
             $info = [];
             $info['name'] = $node->getAttribute('id');
-            $info['is_link'] = $this->getChildContents('properties/is_link', $node);
+            $info['is_link'] = (int)$this->getChildContents('properties/is_link', $node);
             $info['category'] = $this->getChildContents('properties/category', $node);
             $info['abstract'] = $this->getChildContents('properties/abstract', $node) == 'true' ? true : false;
             $info['parent'] = $this->getChildContents('parent', $node);
@@ -91,6 +91,7 @@ class DatamodelService
             $fieldInfo = [];
             $fieldInfo['code'] = $fieldNode->getAttribute('id'); 
             $fieldInfo['type'] = $fieldNode->getAttribute('xsi:type');
+            $fieldInfo['is_null_allowed'] = $this->getChildContents('is_null_allowed', $fieldNode);
             $fieldInfo['label'] = $this->getDictEntry("Class:$className/Attribute:{$fieldInfo['code']}", $xp);
             $fieldInfo['description'] = $this->getDictEntry("Class:$className/Attribute:{$fieldInfo['code']}+", $xp);
             $fields[$fieldInfo['code']] = $fieldInfo;
@@ -147,7 +148,7 @@ class DatamodelService
     
     protected function getDictEntry($id, DOMXPath $xp): string
     {
-        $items = $xp->query("//dictonaries/dictionary[@id='{$this->language}']/items/item[@id='$id']");
+        $items = $xp->query("//dictionaries/dictionary[@id='".$this->language."']/entries/entry[@id='$id']");
         if ($items->count() === 0) {
             return '';
         }

@@ -7,13 +7,13 @@
 
 [ ] Implement ApplyStimulus tool
 
-[ ] Implement GetImpactedItems tool
+[x] Implement GetImpactedItems tool
 
-[ ] Make the log level configurable via .env
+[x] Make the log level configurable via .env
 
 [-] Configure the MCP log level rotation per month not per day / Not feasible in pure Symfony
 
-[ ] Store the project in Github
+[x] Store the project in Github
 
 
 --------------
@@ -35,7 +35,7 @@ GestTasks
 UpdateTask
 GetAssignementGroups
 FindIncidentsByCaller
-FindCasesByCaller
+FindCasesByCaller - searchUserRequestByStatusStartDate
 ---------------
 Ce que l'on souhaite
 Créer un ticket / demande

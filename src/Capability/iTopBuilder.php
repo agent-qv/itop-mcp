@@ -58,7 +58,7 @@ class iTopBuilder
 {
     private Builder $builder;
     
-    public function __construct(private iTopClientInterface $iTopClient, private sfCacheInterface $restOperationsCache, private string $projectDir)
+    public function __construct(private iTopClientInterface $iTopClient, private sfCacheInterface $restOperationsCache, private string $projectDir, private LoggerInterface $mcpLogger)
     {
         $this->builder = new Builder();    
     }
@@ -361,7 +361,6 @@ class iTopBuilder
      */
     public function build(): Server
     {
-        file_put_contents("/tmp/mcp-requests.txt", "--- iTopBuilder::build ---\n", FILE_APPEND);
         $toolsDirs = $this->getDiscoveryDirs();
         $this->setDiscovery($this->projectDir, $toolsDirs);
         return $this->builder->build();
@@ -375,23 +374,38 @@ class iTopBuilder
      */
     protected function getDiscoveryDirs(): array
     {
-        $dirsToScan = [];
+        $dirsToScan = ['/src/Tools/schema'];
+
         if($this->iTopClient->canConnect()) {
             $listOperationsResponse = $this->restOperationsCache->get('list_operations', function (ItemInterface $item): string {
-                //file_put_contents("/tmp/mcp-requests.txt", "list_operations CACHE MISS!!\n", FILE_APPEND);
-                $item->expiresAfter(300);
+                $this->mcpLogger->debug("restOperationsCache cache MISS for list_operations");
                 $listOperationsResponse = $this->iTopClient->postJsonToItop(json_encode(['operation' => 'list_operations']));
+                $decodedResponse = json_decode($listOperationsResponse, true);
+                if ($decodedResponse === false) {
+                    // Invalid JSON, is it the correct URL to context iTop?
+                    $this->mcpLogger->error("Invalid JSON returned from iTop at URL='".$this->iTopClient->getRestEndpointUrl()."'. Is it the correct URL?", ['response_content' => $listOperationsResponse]);
+                    $item->expiresAfter(0);
+                    throw new \Exception("Error contacting iTop. Check the MCP server logs and adjust the MCP server configuration.");
+                } elseif ($decodedResponse['code'] != 0) {
+                    // Something went wrong with iTop
+                    $this->mcpLogger->error("'list_operations' returned an error: code:'{$decodedResponse['code']}', message: '{$decodedResponse['message']}'.");
+                    if ($decodedResponse['code'] == 1) {
+                        $this->mcpLogger->error("Check that your token is correct and that 'Token' is enabled in 'allowed_login_types' in the iTop configuration file.");
+                    }
+                    $item->expiresAfter(0);
+                    throw new \Exception("Error contacting iTop. Check the MCP server logs and adjust the MCP server configuration.");
+                }
+                $item->expiresAfter(300);
                 return $listOperationsResponse;
             }, 1.0);
-            
             $decodedResponse = json_decode($listOperationsResponse, true);
             foreach($decodedResponse['operations'] as $operation) {
                 $dir = '/src/Tools/'.$operation['verb'];
-                if (is_dir($this->projectDir.'/'.$dir)) {
+                if (is_dir($this->projectDir.$dir)) {
                     $dirsToScan[] = $dir;
                 }
             }
-            file_put_contents("/tmp/mcp-requests.txt", "list_operations returned:\n$listOperationsResponse\n", FILE_APPEND);
+            $this->mcpLogger->debug("iTopBuilder::getDiscoveryDirs", ['dirsToScan' => $dirsToScan]);
         }
         return $dirsToScan;
     }
