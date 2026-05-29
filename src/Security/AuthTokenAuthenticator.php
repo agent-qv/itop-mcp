@@ -31,7 +31,6 @@ class AuthTokenAuthenticator extends AbstractAuthenticator
      */
     public function supports(Request $request): ?bool
     {
-        file_put_contents("/tmp/mcp-requests.txt", $request->getMethod().' - '.$request->getRequestUri()."\n", FILE_APPEND);
         if ($request->getMethod() === 'OPTIONS') return false;
         return $request->headers->has('Authorization');
     }
@@ -54,7 +53,7 @@ class AuthTokenAuthenticator extends AbstractAuthenticator
             throw new CustomUserMessageAuthenticationException('Invalid authorization header format. Expecting: Bearer <token>');
         }
         $token = $matches[1];
-        $this->mcpLogger->info("Authorization header format Ok.");
+        $this->mcpLogger->debug("Authorization header format Ok.");
         $this->mcpLogger->debug("Bearer token = '$token'.");
         return new SelfValidatingPassport(new UserBadge($token), []);
     }
