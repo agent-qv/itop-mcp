@@ -5,6 +5,6 @@ monolog:
         mcp:
             type: rotating_file
             path: '%kernel.logs_dir%/mcp.log'
-            level: debug
+            level: '%app.log_level%'
             channels: ['mcp']
             max_files: 30
