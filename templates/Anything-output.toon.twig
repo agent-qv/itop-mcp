@@ -6,13 +6,13 @@ Sorry, no such object exists in iTop.
 {% for obj in json.objects|slice(0, 1) %}
 {% set className = obj.class %}
 class {{ className }}:
-  id{% for code, value in obj.fields %}{%if code !== 'id' %}{% if value is not iterable %}, {{code}}{% endif %}{% endif %}{% endfor %}
+  id{% for code, value in obj.fields %}{%if code !== 'id' and value is not iterable %}, {{code}}{% endif %}{% endfor %}
 {% endfor %}
 
 
 {{ className }} {
 {% for obj in json.objects %}
-  {{obj.key}}{% for code, value in obj.fields %}{% if code !== 'id' %}, "{% if value is not iterable %}{{ value }}{% endif %}"{% endif %}{% endfor ~%}
+  {{obj.key}}{% for code, value in obj.fields %}{% if code !== 'id' and value is not iterable %}, "{{ value }}"{% endif %}{% endfor ~%}
 {% endfor %}
 }
 {% else %}
