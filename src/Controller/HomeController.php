@@ -5,15 +5,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\iTopClient;
 
 class HomeController extends AbstractController
 {
     #[Route('/')]
-    public function index(Request $request, string $iTopUrl, string $projectDir): Response
+    public function index(Request $request, string $iTopUrl, string $projectDir, iTopClient $client): Response
     {
         $httpCode = 0;
         if ($iTopUrl !== '') {
-            $httpCode = $this->getHttpCode($iTopUrl);
+            $testUrl = $client->getRestEndpointUrl();
+            $httpCode = $this->getHttpCode($testUrl);
         }
         return $this->render('home.html.twig', [
             'iTopUrl' => $iTopUrl,
