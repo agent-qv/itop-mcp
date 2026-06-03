@@ -98,7 +98,7 @@ class iTopGetTools extends iTopRestTools
      * - an optional start date
      * - if a start date is specified, the condition/operator: either 'greater_than' or 'less_than'
      * @param string $caller_email The email of the caller
-     * @param string[] $statuses Optional, a list of status codes (multiple values will be combined with a OR condition). Possible values are 'new', 'assigned', 'resolved', 'closed'.
+     * @param string[] $statuses Optional, a list of status codes (multiple values will be combined with a OR condition). Call get-class-schema('UserRequest') to find the possible values for the status field.
      * @param string $start_date Optional, the start date-time of the UserRequest (format as a MySQL DateTime (YYYY-MM-DD hh:ii:ss)
      * @param string $condition Optional, the condiotnal operator for the start date: either 'greater_than" or 'less_than'
      */
@@ -108,7 +108,7 @@ class iTopGetTools extends iTopRestTools
         return $this->runToolFromTemplates('searchUserRequestFromCallerStatusDate', 'UserRequest',
             [
                 'caller_email' => $caller_email,
-                'statuses' => count($statuses) > 0 ? "'".implode("'", $statuses)."'" : '', 
+                'statuses' => count($statuses) > 0 ? "'".implode("','", $statuses)."'" : '', 
                 'start_date' => $start_date,
                 'condition' => $condition === 'greater_than' ? '>=' : '<=',
             ]
