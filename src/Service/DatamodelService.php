@@ -10,9 +10,11 @@ use DOMXPath;
 class DatamodelService
 {
 
+    protected ?DOMXPath $xp;
+
     public function __construct(private string $datamodelFile, private CacheInterface $datamodelCache, private string $language)
     {
-        
+        $this->xp = null;
     }
     
     public function getClasses(): array
@@ -50,9 +52,9 @@ class DatamodelService
         $classes = [];
         $document = new DOMDocument();
         $document->load($xmlFile);
-        $xp = new \DOMXPath($document);
+        $this->xp = new DOMXPath($document);
         $query = "//classes/class/properties/category/../..";
-        $nodes = $xp->query($query);
+        $nodes = $this->xp->query($query);
         foreach($nodes as $node) {
             $info = [];
             $info['name'] = $node->getAttribute('id');
@@ -60,9 +62,9 @@ class DatamodelService
             $info['category'] = $this->getChildContents('properties/category', $node);
             $info['abstract'] = $this->getChildContents('properties/abstract', $node) == 'true' ? true : false;
             $info['parent'] = $this->getChildContents('parent', $node);
-            $info['label'] = $this->getClassLabel($xp, $node->getAttribute('id'), $this->language);
-            $info['description'] = $this->getClassDescription($xp, $node->getAttribute('id'), $this->language);
-            $zlist = $this->getFlatZlist($xp, $node->getAttribute('id'), 'list');
+            $info['label'] = $this->getClassLabel($node->getAttribute('id'), $this->language);
+            $info['description'] = $this->getClassDescription($node->getAttribute('id'), $this->language);
+            $zlist = $this->getFlatZlist($node->getAttribute('id'), 'list');
             $info['zlist_list'] = $info['is_link'] ? $zlist : 'friendlyname,'.$zlist;
             $classes[$node->getAttribute('id')] = $info;
         }
@@ -74,9 +76,9 @@ class DatamodelService
         $fields = [];
         $document = new DOMDocument();
         $document->load($xmlFile);
-        $xp = new \DOMXPath($document);
+        $this->xp = new DOMXPath($document);
         $query = "/itop_design/classes/class[@id='$className']";
-        $nodes = $xp->query($query);
+        $nodes = $this->xp->query($query);
         if ($nodes->count() !== 1) {
             throw new \Exception("Class $className not found or ambiguous in the datamodel XML. ".$nodes->count()." elements found.");
         }
@@ -86,14 +88,25 @@ class DatamodelService
             // Inherit the fields from the parent class(es)
             $fields = $this->getClassSchema($parent);
         }
-        $fieldNodes = $xp->query("/itop_design/classes/class[@id='$className']/fields/field");
+        $fieldNodes = $this->xp->query("/itop_design/classes/class[@id='$className']/fields/field");
         foreach($fieldNodes as $fieldNode) {
             $fieldInfo = [];
             $fieldInfo['code'] = $fieldNode->getAttribute('id'); 
             $fieldInfo['type'] = $fieldNode->getAttribute('xsi:type');
             $fieldInfo['is_null_allowed'] = $this->getChildContents('is_null_allowed', $fieldNode);
-            $fieldInfo['label'] = $this->getDictEntry("Class:$className/Attribute:{$fieldInfo['code']}", $xp);
-            $fieldInfo['description'] = $this->getDictEntry("Class:$className/Attribute:{$fieldInfo['code']}+", $xp);
+            switch($fieldInfo['type']) {
+                case 'AttributeExternalKey':
+                    $fieldInfo['target_class'] = $this->getChildContents('target_class', $fieldNode);
+                    break;
+                case 'AttributeLinkedSet':
+                case 'AttributeLinkedSetIndirect':
+                    $fieldInfo['linked_class'] = $this->getChildContents('linked_class', $fieldNode);
+                    break;
+                case 'AttributeEnum':
+                    $fieldInfo['values'] = $this->getEnumValues($className, $fieldNode);
+            }
+            $fieldInfo['label'] = $this->getDictEntry("Class:$className/Attribute:{$fieldInfo['code']}");
+            $fieldInfo['description'] = $this->getDictEntry("Class:$className/Attribute:{$fieldInfo['code']}+");
             $fields[$fieldInfo['code']] = $fieldInfo;
         }
         return $fields;
@@ -101,17 +114,16 @@ class DatamodelService
     
     protected function getChildContents(string $path, DOMNode $node): string
     {
-        $xp = new \DOMXPath($node->ownerDocument);
-        $nodes = $xp->query($path, $node);
+        $nodes = $this->xp->query($path, $node);
         return ($nodes->item(0) != null) ? $nodes->item(0)->textContent : '';
     }
     
-    protected function getClassLabel(\DOMXPath $xp, string $className, string $language) {
+    protected function getClassLabel(string $className, string $language) {
         static $classLabels = null; // memoization
         
         if ($classLabels === null) {
             $query = "//dictionaries/dictionary[@id='".$language."']/entries/entry[starts-with(@id,'Class') and not(contains(@id, '/')) and not(contains(@id, '+'))]";
-            $nodes = $xp->query($query);
+            $nodes = $this->xp->query($query);
             foreach($nodes as $node) {
                 $name = substr($node->getAttribute('id'), 6);
                 $classLabels[$name] = $node->textContent;
@@ -120,12 +132,12 @@ class DatamodelService
         return $classLabels[$className] ?? $className;
     }
     
-    protected function getClassDescription(\DOMXPath $xp, string $className, string $language) {
+    protected function getClassDescription(string $className, string $language) {
         static $classDescriptions = null; // memoization
         
         if ($classDescriptions === null) {
             $query = "//dictionaries/dictionary[@id='".$language."']/entries/entry[starts-with(@id,'Class') and not(contains(@id, '/')) and contains(@id, '+')]"; // ends-with is a XPath 2.0 function
-            $nodes = $xp->query($query);
+            $nodes = $this->xp->query($query);
             foreach($nodes as $node) {
                 $name = substr(substr($node->getAttribute('id'), 6), 0, -1);
                 $classDescriptions[$name] = $node->textContent;
@@ -134,9 +146,21 @@ class DatamodelService
         return $classDescriptions[$className] ?? '';
     }
     
-    protected function getFlatZlist(DOMXPath $xp, string $className, string $listName): string
+    protected function getEnumValues(string $className, DOMNode $node): array
     {
-        $items = $xp->query("//classes/class[@id='".$className."']/presentation/$listName/items/item");
+        $result = [];
+        $fieldCode = $node->getAttribute('id');
+        $values = $this->xp->query("values/value", $node);
+        foreach($values as $value) {
+            $code = $this->getChildContents('code', $value);
+            $result[$code] = $this->getDictEntry("Class:{$className}/Attribute:{$fieldCode}/Value:{$code}");
+        }
+        return $result;
+    }
+    
+    protected function getFlatZlist(string $className, string $listName): string
+    {
+        $items = $this->xp->query("//classes/class[@id='".$className."']/presentation/$listName/items/item");
         $zlist = [];
         foreach($items as $item) {
             $zlist[$item->getAttribute('id')] = $this->getChildContents('rank', $item);
@@ -146,9 +170,9 @@ class DatamodelService
         return implode(',', array_keys($zlist));
     }
     
-    protected function getDictEntry($id, DOMXPath $xp): string
+    protected function getDictEntry($id): string
     {
-        $items = $xp->query("//dictionaries/dictionary[@id='".$this->language."']/entries/entry[@id='$id']");
+        $items = $this->xp->query("//dictionaries/dictionary[@id='".$this->language."']/entries/entry[@id='$id']");
         if ($items->count() === 0) {
             return '';
         }

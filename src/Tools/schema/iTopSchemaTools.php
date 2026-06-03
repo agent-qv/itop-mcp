@@ -19,7 +19,7 @@ class iTopSchemaTools
     #[McpTool(name: 'list-all-classes')]
     public function listAllClasses(): string
     {
-        $output = '';
+        $output = "# Main classes\n\n";
         $classes = $this->datamodel->getClasses();
         ksort($classes);
         foreach($classes as $className => $classInfo) {
@@ -27,7 +27,16 @@ class iTopSchemaTools
                 // Only bizmodel classes which are not n:n links
                 $description = $classInfo['description'] === '' ? '' : ': '.$classInfo['description'];
                 $inheritance = !in_array($classInfo['parent'], ['DBObject', 'CMDBOject', 'cmdbAbstractObject']) ? ' derived from class '.$classInfo['parent'] : '';
-                $output .= "Class {$className} (label: {$classInfo['label']}){$inheritance}{$description}\n";
+                $output .= "- {$className} (label: {$classInfo['label']}){$inheritance}{$description}\n";
+            }
+        }
+        $output .= "\n# Link classes, used to store many-to-many relationships\n\n";
+        foreach($classes as $className => $classInfo) {
+            if ($classInfo['is_link'] === 1) {
+                // Only bizmodel classes which are not n:n links
+                $description = $classInfo['description'] === '' ? '' : ': '.$classInfo['description'];
+                $inheritance = !in_array($classInfo['parent'], ['DBObject', 'CMDBOject', 'cmdbAbstractObject']) ? ' derived from class '.$classInfo['parent'] : '';
+                $output .= "- {$className} (label: {$classInfo['label']}){$inheritance}{$description}\n";
             }
         }
         return $output;
@@ -35,6 +44,7 @@ class iTopSchemaTools
 
     /**
      * This tool documents the schema (i.e. the list of all the fields) of a specified class in iTop.
+     * @param string The name of the class for which to retrieve schema information
      */
     #[McpTool(name: 'get-class-schema')]
     public function getClassSchema(string $className): string
@@ -47,6 +57,22 @@ class iTopSchemaTools
         $output = "Class $className:\n  Fields:\n";
         foreach($fields as $code => $fieldInfo) {
             $type = substr($fieldInfo['type'], 9);
+            switch($type) {
+                case 'Enum':
+                    $type .= ' values: '. implode(' ', array_map(
+                        function(string $code, string $label) { return "$code ($label)"; },
+                        array_keys($fieldInfo['values']),
+                        array_values($fieldInfo['values'])
+                    ));
+                    break;
+                case 'ExternalKey':
+                    $type .= " to a {$fieldInfo['target_class']} object";
+                    break;
+            
+                case 'LinkedSet':
+                case 'LinkedSetIndirect':
+                    $type .= ": a collection of {$fieldInfo['linked_class']} objects";
+            }
             $description = $fieldInfo['description'] === '' ? '' : ', '.$fieldInfo['description'];
             $mandatory = $fieldInfo['is_null_allowed'] === 'false' ? ' mandatory ' : '';
             $output .= "    - {$code} ({$fieldInfo['label']}), type: {$type}{$mandatory}{$description}\n";

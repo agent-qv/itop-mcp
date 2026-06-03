@@ -20,8 +20,8 @@ class iTopCreateTools extends iTopRestTools
     /**
      * This tool can create any object in iTop.
      * 
-     * IMPORTANT: before calling this tool use the tool 'get-itop-classes' to determine the list of available classes
-     * and 'get-class-schema(<className>)' to obtain information about the schema for a particular class (to get information about the fields and their type and possible values).
+     * IMPORTANT: before calling this tool use the tool 'list-all-classes' to determine the list of available classes
+     * and 'get-class-schema(<className>)' to obtain information about the schema for a particular class (to get information about the fields, their type and possible values).
      * 
      * @param string $object_class The class of the object to create
      * @param string $fields A JSON formatted object {"field_code":"field_value"} for the fields to set into the new object
