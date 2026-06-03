@@ -2,9 +2,17 @@
 monolog:
     channels: ['mcp', 'app']
     handlers:
+        filter_for_errors:
+            type: fingers_crossed
+            # if *one* log is error or higher, pass *all* to file_log
+            action_level: error
+            handler: file_log
+        file_log:
+            type: rotating_file
+            path: '%kernel.logs_dir%/mcp.log'   
         mcp:
             type: rotating_file
             path: '%kernel.logs_dir%/mcp.log'
             level: '%app.log_level%'
-            channels: ['mcp']
+            channels: ['mcp', 'app']
             max_files: 30
