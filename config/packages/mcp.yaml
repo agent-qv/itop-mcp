@@ -4,11 +4,11 @@ mcp:
     version: '1.0.0' # Application version to be exposed to clients
     description: 'iTop MCP server' # Application description to be exposed to clients
     icons:
-        - src: 'https://example.com/icon.png' # Application icon URL
-          mime_type: 'image/png' # MIME type of the icon
-          sizes: ['64x64'] # Sizes of the icon
-    website_url: 'http://demo.combodo.com/itop-mcp' # Application website URL
-    pagination_limit: 50 # Maximum number of items returned per list request (default: 50)
+        - src: '%env(APP_ITOP_URL)%/images/favicon.ico' # Application icon URL
+          mime_type: 'image/vnd.microsoft.icon' # MIME type of the icon
+          sizes: ['128x128'] # Sizes of the icon
+    website_url: '%env(APP_ITOP_URL)%' # Application website URL
+    pagination_limit: 50 # Maximum number of items returned per list request (default: 50) for list of tools, resources, prompts, etc.
     instructions: | # Instructions describing server purpose and usage context (for LLMs)
         This server provides capabilities to manipulate information (objects) managed by iTop.
         iTop is an IT Service Management (ITSM) software (more information at https://www.itophub.io/wiki/)
@@ -18,8 +18,8 @@ mcp:
         
         IMPORTANT:
         The schema of iTop can be customized, therefore each instance of iTop as a unique schema.
-        DO NOT assume that the schema follows the documentation on the internet. Use the tools "get-all-classes" and "get-class-schema"
-        to obtain information about the schema of this particular iTop instance.
+        DO NOT assume that the schema follows the documentation on the internet.
+        Use the tools "list-all-classes()" and "get-class-schema(<className>)" to obtain information about the schema of this particular iTop instance.
 
     client_transports:
         stdio: false # Enable STDIO via command

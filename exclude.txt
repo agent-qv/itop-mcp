@@ -1,0 +1,10 @@
+TODO.md
+.gitignore
+.project
+.settings
+migrations
+translations
+tests
+.env.dev
+.buildpath
+.editorconfig

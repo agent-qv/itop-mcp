@@ -1,9 +1,9 @@
 # TODO
 [x] Make the language configurable via .env
 
-[ ] Complete the implementation of the datamodel service and implement the datamodel tools
+[x] Complete the implementation of the datamodel service and implement the datamodel tools
 
-[ ] Implement the tools listed in ServiceNow ref
+[~] Implement the tools listed in ServiceNow ref
 
 [ ] Implement ApplyStimulus tool
 
