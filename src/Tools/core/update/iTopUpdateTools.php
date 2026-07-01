@@ -44,4 +44,34 @@ class iTopUpdateTools extends iTopRestTools
             ]
         );
     }
+
+    /**
+     * This tool can update any object in iTop.
+     * 
+     * IMPORTANT: before calling this tool use the tool 'list-all-classes' to determine the list of available classes
+     * and 'get-class-schema(<className>)' to obtain information about the schema for a particular class (to get information about the fields, their type and possible values).
+     * 
+     * @param string $object_class The class of the object to update
+     * @param int $id The key of the object to update
+     * @param string $fields A JSON formatted object {"field_code":"field_value"} for the fields to update in the object
+     */
+    #[McpTool(name: 'update-any-object', annotations: new ToolAnnotations(null, false, true, false, false))]
+    public function updateAnyObject(string $object_class, int $id, string $fields_json): string
+    {
+        $fields = json_decode($fields_json, true);
+        if ($fields === false) {
+            $error = 'Error: invalid value for the parameter "field_json". Expecting a valid JSON structure {"code":"value"} for each field to populate.';
+            $this->mcpLogger->error('[Tool called] create-itop-object', ['error' => $error, 'object_class' => $object_class, 'id' => $id, 'fields_json' => $fields_json]);
+            return $error;
+        }
+        $this->mcpLogger->info('[Tool called] update-any-object');
+        return $this->runToolFromTemplates('updateAnything', 'Anything',
+            [
+                'class' => $object_class,
+                'id' => $id,
+                'fields' => $fields,
+                'output_fields' => $this->datamodel->getListZlist($object_class),
+            ]
+        );
+    }
 }

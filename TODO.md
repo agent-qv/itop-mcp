@@ -15,6 +15,12 @@
 
 [x] Store the project in Github
 
+[ ] Add a prefix (optional/configurable?) to all tools
+
+[x] Implement the generic update-any-object tool
+
+[ ] Improve the get_class_chema tool to provide guidance for creating / updating objects
+
 
 --------------
 GetIncident

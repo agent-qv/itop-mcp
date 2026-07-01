@@ -1,0 +1,12 @@
+{
+  "operation":"core/update",
+  "class":"{{ class }}",
+  "key":{{id}},
+  "output_fields":"{{output_fields}}",
+  "fields": {
+{% for code, value in fields %}
+    "{{ code }}":"{{ value }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+  },
+  "comment": "Created via the MCP server"
+}
