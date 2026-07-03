@@ -11,6 +11,7 @@ parameters:
     app.datamodel_file: '%kernel.project_dir%/%env(APP_DATAMODEL_FILE)%'
     app.language: '%env(APP_LANGUAGE)%'
     app.log_level: '%env(APP_LOG_LEVEL)%'
+    app.tools_prefix: '%env(APP_TOOLS_PREFIX)%'
     services:
         _defaults:
 

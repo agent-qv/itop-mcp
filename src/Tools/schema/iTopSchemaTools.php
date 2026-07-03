@@ -16,7 +16,7 @@ class iTopSchemaTools
     /**
      * This tool lists all the possible classes of objects managed in iTop.
      */
-    #[McpTool(name: 'list-all-classes')]
+    #[McpTool(name: TOOL_PREFIX.'list-all-classes')]
     public function listAllClasses(): string
     {
         $output = "# Main classes\n\n";
@@ -46,7 +46,7 @@ class iTopSchemaTools
      * This tool documents the schema (i.e. the list of all the fields) of a specified class in iTop.
      * @param string The name of the class for which to retrieve schema information
      */
-    #[McpTool(name: 'get-class-schema')]
+    #[McpTool(name: TOOL_PREFIX.'get-class-schema')]
     public function getClassSchema(string $className): string
     {
         $fields = $this->datamodel->getClassSchema($className);

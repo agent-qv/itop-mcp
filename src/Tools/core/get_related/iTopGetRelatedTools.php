@@ -27,7 +27,7 @@ class iTopGetRelatedTools extends iTopRestTools
      * @param string $objectClass The class of the object for which to compute the impact
      * @param int $objectIi The identifier of the object for which to compute the impact
      */
-    #[McpTool(name: 'get-impacted-objects', annotations: new ToolAnnotations(null, true, false, true, false))]
+    #[McpTool(name: TOOL_PREFIX.'get-impacted-objects', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function getImpactedObjects(string $objectClass, int $objectId): string
     {
         $this->mcpLogger->info('[Tool called] get-impacted-objects');
@@ -46,7 +46,7 @@ class iTopGetRelatedTools extends iTopRestTools
      * @param string $objectClass The class of the object for which to compute the dependencies
      * @param int $objectIi The identifier of the object for which to compute the dependencies
      */
-    #[McpTool(name: 'get-depends-on-objects', annotations: new ToolAnnotations(null, true, false, true, false))]
+    #[McpTool(name: TOOL_PREFIX.'get-depends-on-objects', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function getDependsOnObjects(string $objectClass, int $objectId): string
     {
         $this->mcpLogger->info('[Tool called] get-depends-on-objects');

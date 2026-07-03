@@ -29,7 +29,7 @@ class iTopUpdateTools extends iTopRestTools
      * @param string $title Specify the new title for the UserRequest (leave empty for no change) 
      * @param string $descriptionHtml Specify the new description for the UserRequest (leave empty for no change) - NOTE the descriptipon MUST BE formatted in HTML
      */
-    #[McpTool(name: 'update-user-request', annotations: new ToolAnnotations(null, false, true, false, false))]
+    #[McpTool(name: TOOL_PREFIX.'update-user-request', annotations: new ToolAnnotations(null, false, true, false, false))]
     public function updateUserRequest(int $id, string $additionalLogEntryHtml, string $title = '', string $descriptionHtml = ''): string
     {
         $this->mcpLogger->info('[Tool called] update-user-request');
@@ -55,13 +55,13 @@ class iTopUpdateTools extends iTopRestTools
      * @param int $id The key of the object to update
      * @param string $fields A JSON formatted object {"field_code":"field_value"} for the fields to update in the object
      */
-    #[McpTool(name: 'update-any-object', annotations: new ToolAnnotations(null, false, true, false, false))]
+    #[McpTool(name: TOOL_PREFIX.'update-any-object', annotations: new ToolAnnotations(null, false, true, false, false))]
     public function updateAnyObject(string $object_class, int $id, string $fields_json): string
     {
         $fields = json_decode($fields_json, true);
         if ($fields === false) {
             $error = 'Error: invalid value for the parameter "field_json". Expecting a valid JSON structure {"code":"value"} for each field to populate.';
-            $this->mcpLogger->error('[Tool called] create-itop-object', ['error' => $error, 'object_class' => $object_class, 'id' => $id, 'fields_json' => $fields_json]);
+            $this->mcpLogger->error('[Tool called] update-any-object', ['error' => $error, 'object_class' => $object_class, 'id' => $id, 'fields_json' => $fields_json]);
             return $error;
         }
         $this->mcpLogger->info('[Tool called] update-any-object');

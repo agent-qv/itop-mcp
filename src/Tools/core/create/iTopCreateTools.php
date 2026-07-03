@@ -26,7 +26,7 @@ class iTopCreateTools extends iTopRestTools
      * @param string $object_class The class of the object to create
      * @param string $fields A JSON formatted object {"field_code":"field_value"} for the fields to set into the new object
      */
-    #[McpTool(name: 'create-any-object', annotations: new ToolAnnotations(null, false, true, false, false))]
+    #[McpTool(name: TOOL_PREFIX.'create-any-object', annotations: new ToolAnnotations(null, false, true, false, false))]
     public function createAnyObject(string $object_class, string $fields_json): string
     {
         $fields = json_decode($fields_json, true);
@@ -44,7 +44,7 @@ class iTopCreateTools extends iTopRestTools
     /**
      * This tool creates a User Request in iTop
      */
-    #[McpTool(name: 'create-user-request', annotations: new ToolAnnotations(null, false, true, false, false))]
+    #[McpTool(name: TOOL_PREFIX.'create-user-request', annotations: new ToolAnnotations(null, false, true, false, false))]
     public function createUserRequest(string $title, string $description, int $callerId, int $orgId, int $impact = 3, int $urgency = 4): string
     {
         $this->mcpLogger->info('[Tool called] create-user-request');

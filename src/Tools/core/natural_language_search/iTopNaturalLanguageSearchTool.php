@@ -29,7 +29,7 @@ class iTopNaturalLanguageSearchTool extends iTopRestTools
      * @param int $page The (one based) number of the page
      * 
      */
-    #[McpTool(name: 'search-in-natural-language', annotations: new ToolAnnotations(null, true, false, false, false))]
+    #[McpTool(name: TOOL_PREFIX.'search-in-natural-language', annotations: new ToolAnnotations(null, true, false, false, false))]
     public function searchInNaturalLanguage(string $query, int $limit = 20, int $page = 1): string
     {
         $this->mcpLogger->info('[Tool called] search-in-natural-language');

@@ -27,7 +27,7 @@ class iTopGetTools extends iTopRestTools
      * @param string $object_class The class of the object to retrieve
      * @param int $id The identifier (key) of the object to retrieve
      */
-    #[McpTool(name: 'get-object-details-from-id', annotations: new ToolAnnotations(null, true, false, true, false))]
+    #[McpTool(name: TOOL_PREFIX.'get-object-details-from-id', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function getObjectDetailsFromId(string $object_class, int $object_id): string
     {
         $this->mcpLogger->info('[Tool called] get-object-details-from-id');
@@ -36,7 +36,7 @@ class iTopGetTools extends iTopRestTools
     /**
      * This tool fetches a Person object in iTop from her/his email address
      */
-    #[McpTool(name: 'get-person-from-email', annotations: new ToolAnnotations(null, true, false, true, false))]
+    #[McpTool(name: TOOL_PREFIX.'get-person-from-email', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function getPersonFromEmail(#[Schema(format: 'email')] string $email): string
     {
         $this->mcpLogger->info('[Tool called] get-person-from-email');
@@ -49,7 +49,7 @@ class iTopGetTools extends iTopRestTools
     /**
      * This tool fetches a Person object in iTop from her/his full name
      */
-    #[McpTool(name: 'get-person-from-fullname', annotations: new ToolAnnotations(null, true, false, true, false))]
+    #[McpTool(name: TOOL_PREFIX.'get-person-from-fullname', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function getPersonFromFullname(string $fullname): string
     {
         $this->mcpLogger->info('[Tool called] get-person-from-fullname');
@@ -62,7 +62,7 @@ class iTopGetTools extends iTopRestTools
     /**
      * This tool fetches a Person object in iTop from her/his telephone number
      */
-    #[McpTool(name: 'get-person-from-telephone', annotations: new ToolAnnotations(null, true, false, true, false))]
+    #[McpTool(name: TOOL_PREFIX.'get-person-from-telephone', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function getPersonFromTelephone(string $telephone): string
     {
         $this->mcpLogger->info('[Tool called] get-person-from-telephone');
@@ -102,7 +102,7 @@ class iTopGetTools extends iTopRestTools
      * @param string $start_date Optional, the start date-time of the UserRequest (format as a MySQL DateTime (YYYY-MM-DD hh:ii:ss)
      * @param string $condition Optional, the condiotnal operator for the start date: either 'greater_than" or 'less_than'
      */
-    #[McpTool(name: 'search-user-request-by-caller-status-start-date', annotations: new ToolAnnotations(null, true, false, true, false))]
+    #[McpTool(name: TOOL_PREFIX.'search-user-request-by-caller-status-start-date', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function searchUserRequestByCallerStatusStartDate(#[Schema(format: 'email')] string $caller_email, array $statuses = [], string $start_date = '', string $condition = 'greater_than'): string
     {
         return $this->runToolFromTemplates('searchUserRequestFromCallerStatusDate', 'UserRequest',

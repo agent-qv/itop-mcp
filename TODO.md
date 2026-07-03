@@ -15,7 +15,7 @@
 
 [x] Store the project in Github
 
-[ ] Add a prefix (optional/configurable?) to all tools
+[x] Add a (configurable) prefix to all tools
 
 [x] Implement the generic update-any-object tool
 
