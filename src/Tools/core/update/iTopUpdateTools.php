@@ -64,6 +64,12 @@ class iTopUpdateTools extends iTopRestTools
             $this->mcpLogger->error('[Tool called] update-any-object', ['error' => $error, 'object_class' => $object_class, 'id' => $id, 'fields_json' => $fields_json]);
             return $error;
         }
+        $state_att_code = $this->datamodel->getClassStateAttCode($object_class);
+        if (($state_att_code !== null) && (array_key_exists($state_att_code, $fields))) {
+            $error = "Error: invalid value for the parameter 'field_json'. You cannot update the field '$state_att_code' since this is the state of the '$object_class' class. Use the tool '".TOOL_PREFIX."apply-stimulus-to-any-object' to update the state of the object.";
+            $this->mcpLogger->error('[Tool called] update-any-object', ['error' => $error, 'object_class' => $object_class, 'id' => $id, 'fields_json' => $fields_json]);
+            return $error;
+        }
         $this->mcpLogger->info('[Tool called] update-any-object');
         return $this->runToolFromTemplates('updateAnything', 'Anything',
             [

@@ -41,6 +41,12 @@ class DatamodelService
         return $classSchema;
     }
     
+    public function getClassStateAttCode(string $className): ?string
+    {
+        $info = $this->getClassSchema($className);
+        return $info['workflow']['state_att_code'] ?? null;
+    }
+    
     public function getListZlist(string $className): string
     {
         $classes = $this->getClasses();
@@ -86,7 +92,8 @@ class DatamodelService
         $parent = $this->getChildContents('parent', $classNode);
         if (!in_array($parent, ['DBObject', 'CMDBOject', 'cmdbAbstractObject'])) {
             // Inherit the fields from the parent class(es)
-            $fields = $this->getClassSchema($parent);
+            $schema = $this->getClassSchema($parent);
+            $fields = $schema['fields'];
         }
         $fieldNodes = $this->xp->query("/itop_design/classes/class[@id='$className']/fields/field");
         foreach($fieldNodes as $fieldNode) {
@@ -109,7 +116,8 @@ class DatamodelService
             $fieldInfo['description'] = $this->getDictEntry("Class:$className/Attribute:{$fieldInfo['code']}+");
             $fields[$fieldInfo['code']] = $fieldInfo;
         }
-        return $fields;
+        $workflow = $this->getWorkflowfromXml($className);
+        return ['fields' => $fields, 'workflow' => $workflow];
     }
     
     protected function getChildContents(string $path, DOMNode $node): string
@@ -177,6 +185,28 @@ class DatamodelService
             return '';
         }
         return $items->item(0)->textContent;
+    }
+    
+    protected function getWorkflowfromXml(string $className): array
+    {
+        $state_attr_nodes = $this->xp->query("//classes/class[@id='".$className."']/properties/fields_semantic/state_attribute");
+        if ($state_attr_nodes->count() === 0) {
+            return [];
+        }
+        $state_att_code = $state_attr_nodes->item(0)->textContent;
+        $stateNodes = $this->xp->query("//classes/class[@id='".$className."']/lifecycle/states/state");
+        $workflow = ['state_att_code' => $state_att_code, 'states' => [], 'transitions' => []];
+        foreach($stateNodes as $node) {
+            $stateValue = $node->getAttribute('id');
+            $workflow['states'][] = $stateValue;
+            $targetStateNodes = $this->xp->query("//classes/class[@id='".$className."']/lifecycle/states/state[@id='".$stateValue."']/transitions/transition");
+            foreach($targetStateNodes as $targetStateNode) {
+                $stimulus = $targetStateNode->getAttribute('id');
+                $targetState = $this->getChildContents('target', $targetStateNode);
+                $workflow['transitions'][] = "$stateValue -- $stimulus --> $targetState\n";
+            }
+        }
+        return $workflow;
     }
 }
 

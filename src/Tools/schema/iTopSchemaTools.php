@@ -44,12 +44,13 @@ class iTopSchemaTools
 
     /**
      * This tool documents the schema (i.e. the list of all the fields) of a specified class in iTop.
-     * @param string The name of the class for which to retrieve schema information
+     * @param string $className The name of the class for which to retrieve schema information
      */
     #[McpTool(name: TOOL_PREFIX.'get-class-schema')]
     public function getClassSchema(string $className): string
     {
-        $fields = $this->datamodel->getClassSchema($className);
+        $info = $this->datamodel->getClassSchema($className);
+        $fields = $info['fields'];
         if ($fields === []) {
             return "The class $className does not exist in iTop. Please provide a valid iTop class name (not a label).";
         }
@@ -76,6 +77,13 @@ class iTopSchemaTools
             $description = $fieldInfo['description'] === '' ? '' : ', '.$fieldInfo['description'];
             $mandatory = $fieldInfo['is_null_allowed'] === 'false' ? ' mandatory ' : '';
             $output .= "    - {$code} ({$fieldInfo['label']}), type: {$type}{$mandatory}{$description}\n";
+        }
+        $workflow = $info['workflow'];
+        if (count($workflow['transitions'])) {
+            $output .= "\n$className life cycle:\nThe possible values and transitions of the '{$workflow['state_att_code']}' field are the following:\n";
+            foreach($workflow['transitions'] as $transition) {
+                $output .= "  $transition";
+            }
         }
         return $output;
     }
