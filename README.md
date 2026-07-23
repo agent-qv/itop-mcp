@@ -7,6 +7,8 @@ The MCP server interacts with iTop using the standard REST/JSON webservices.
 
 The datamodel (`datamodel-production.xml`) of the target iTop instance MUST BE copied to the data folder of the project.
 
+The complete dopcumentation is available here: https://www.itophub.io/wiki/page?id=extensions:itop-mcp
+
 # Installation
 
 1) Run:
