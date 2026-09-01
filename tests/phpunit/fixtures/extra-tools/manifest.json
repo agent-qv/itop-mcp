@@ -1,0 +1,6 @@
+[
+  {
+    "directory": "tests/phpunit/fixtures/extra-tools/tools",
+    "namespace": "App\\Tests\\Fixtures\\ExtraTools\\"
+  }
+]

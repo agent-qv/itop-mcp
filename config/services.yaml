@@ -4,6 +4,12 @@
 # Files in the packages/ subdirectory configure your dependencies.
 # See also https://symfony.com/doc/current/service_container/import.html
 
+# MicroKernelTrait only auto-imports config/services.php when config/services.yaml does NOT
+# exist (see configureContainer() in vendor/symfony/framework-bundle) - since this file does
+# exist, services.php needs importing explicitly, or it is silently never loaded.
+imports:
+    - { resource: services.php }
+
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
@@ -12,6 +18,7 @@ parameters:
     app.language: '%env(APP_LANGUAGE)%'
     app.log_level: '%env(APP_LOG_LEVEL)%'
     app.tools_prefix: '%env(APP_TOOLS_PREFIX)%'
+    app.extra_tools_manifest: '%env(APP_EXTRA_TOOLS_MANIFEST)%'
     services:
         _defaults:
 
@@ -25,6 +32,7 @@ services:
             string $projectDir: '%kernel.project_dir%'
             string $datamodelFile: '%app.datamodel_file%'
             string $language: '%app.language%'
+            string $extraToolsManifestFile: '%app.extra_tools_manifest%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

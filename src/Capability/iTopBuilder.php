@@ -58,7 +58,7 @@ class iTopBuilder
 {
     private Builder $builder;
     
-    public function __construct(private iTopClientInterface $iTopClient, private sfCacheInterface $restOperationsCache, private string $projectDir, private LoggerInterface $mcpLogger)
+    public function __construct(private iTopClientInterface $iTopClient, private sfCacheInterface $restOperationsCache, private string $projectDir, private LoggerInterface $mcpLogger, private string $extraToolsManifestFile = '')
     {
         $this->builder = new Builder();    
     }
@@ -407,6 +407,76 @@ class iTopBuilder
             }
             $this->mcpLogger->debug("iTopBuilder::getDiscoveryDirs", ['dirsToScan' => $dirsToScan]);
         }
+
+        // Extra tool directories (see APP_EXTRA_TOOLS_MANIFEST) let a deployment or an iTop
+        // extension add its own MCP tools without forking this application. Unlike the
+        // src/Tools/{verb} directories above, these do not depend on iTop connectivity:
+        // list_operations (used above) returns the same static list of REST verbs the
+        // module supports regardless of the connected account's actual rights - confirmed
+        // against Combodo's own webservices/rest.php, where the list is built before any
+        // authentication or authorization check runs. It is not a per-account permission
+        // check, so gating discovery on it would not provide real protection. Authorization
+        // stays exactly where it already is: iTop enforces bulk read/write and class-specific
+        // rights when each REST call is actually made.
+        foreach ($this->getExtraToolDirs() as $extraDir) {
+            if (!isset($extraDir['directory'])) {
+                continue;
+            }
+            $dir = '/'.ltrim($extraDir['directory'], '/');
+            if (is_dir($this->projectDir.$dir)) {
+                $dirsToScan[] = $dir;
+                // Unlike src/Tools, this directory is not necessarily covered by a Composer
+                // autoload rule. The Discoverer resolves a class name from each file's source
+                // (no autoloading needed for that part), but actually reflecting or
+                // instantiating it does need the class loaded - so load it explicitly.
+                $this->requirePhpFiles($this->projectDir.$dir);
+            }
+        }
+
         return $dirsToScan;
+    }
+
+    /**
+     * Loads every *.php file under $dir, recursively, so classes that are not covered by a
+     * Composer autoload rule (an extra tool directory outside src/) are defined and ready
+     * for reflection/instantiation. Safe to call more than once (require_once).
+     */
+    protected function requirePhpFiles(string $dir): void
+    {
+        // Recursive to match the Discoverer's own Symfony Finder scan (Finder::in()
+        // descends into subdirectories by default): a class nested in a subfolder would
+        // otherwise be discovered by the Finder-based scan but fail to load at instantiation
+        // time, since it was never require_once'd.
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                require_once $file->getPathname();
+            }
+        }
+    }
+
+    /**
+     * Reads APP_EXTRA_TOOLS_MANIFEST, if configured: a JSON file listing extra tool
+     * directories to discover - [{"directory": "...", "namespace": "..."}, ...].
+     *
+     * "namespace" is not used here - it is for config/services.php, which registers the same
+     * directories as Symfony services (autowiring, DI) so their classes are actually callable,
+     * not just discoverable. Both read this same manifest independently, since one runs at
+     * request time and the other at container-compile time.
+     *
+     * @return array<int, array{directory?: string, namespace?: string}>
+     */
+    protected function getExtraToolDirs(): array
+    {
+        $manifestFile = trim($this->extraToolsManifestFile);
+        if ($manifestFile === '') {
+            return [];
+        }
+        $path = $this->projectDir.'/'.$manifestFile;
+        if (!is_file($path) || !is_readable($path)) {
+            return [];
+        }
+        $entries = json_decode((string)file_get_contents($path), true);
+        return \is_array($entries) ? $entries : [];
     }
 }
