@@ -129,11 +129,12 @@ class iTopGetTools extends iTopRestTools
     #[McpTool(name: TOOL_PREFIX.'search-incident-by-caller-status-start-date', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function searchIncidentByCallerStatusStartDate(#[Schema(format: 'email')] string $caller_email, array $statuses = [], string $start_date = '', string $condition = 'greater_than'): string
     {
+        $statuses = array_map(fn($status) => $this->escapeOqlLiteral((string)$status), $statuses);
         return $this->runToolFromTemplates('searchIncidentFromCallerStatusDate', 'Incident',
             [
-                'caller_email' => $caller_email,
+                'caller_email' => $this->escapeOqlLiteral($caller_email),
                 'statuses' => count($statuses) > 0 ? "'".implode("','", $statuses)."'" : '',
-                'start_date' => $start_date,
+                'start_date' => $this->escapeOqlLiteral($start_date),
                 'condition' => $condition === 'greater_than' ? '>=' : '<=',
             ]
        );
