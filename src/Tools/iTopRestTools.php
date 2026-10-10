@@ -36,21 +36,29 @@ abstract class iTopRestTools
     {
         return $this->iTopClient->postJsonToItop($json);
     }
-
+    
     /**
-     * Removes the characters that would let a value break out of its OQL string literal:
-     * quotes, the escape character, and control characters. Meant for exact-match values
-     * (equality, IN lists) - a LIKE pattern also needs its wildcards (%, _) stripped,
-     * which callers must handle themselves.
-     *
-     * Duplicated here (rather than shared) because this PR and #8 are independent,
-     * isolated proposals - see this PR's discussion for why, and the intent to collapse
-     * the duplication once both land.
+     * Quote the string to protect from user input breaking the JSON / OQL
+     * Based on MySQL's real_escape_string logic
+     * @param string $value
+     * @return string
      */
-    protected function escapeOqlLiteral(string $value): string
+    public static function quoteString(string $value)
     {
-        $value = str_replace(["\\", "'", '"'], '', $value);
-        $value = preg_replace('/[\x00-\x1F\x7F]/u', '', $value);
-        return trim($value);
+        $replacementMap = [
+            "\0" => "\\0",
+            "\n" => "\\n",
+            "\r" => "\\r",
+            "\t" => "\\t",
+            chr(26) => "\\Z",
+            chr(8) => "\\b",
+            '"' => '\"',
+            "'" => "\'",
+            '_' => "\_",
+            "%" => "\%",
+            '\\' => '\\\\'
+        ];
+        
+        return strtr($value, $replacementMap);
     }
 }

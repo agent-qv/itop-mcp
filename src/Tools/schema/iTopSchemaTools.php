@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Tools\schema;
 
 use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
 use App\Service\DatamodelService;
 
 class iTopSchemaTools
@@ -16,7 +17,7 @@ class iTopSchemaTools
     /**
      * This tool lists all the possible classes of objects managed in iTop.
      */
-    #[McpTool(name: TOOL_PREFIX.'list-all-classes')]
+    #[McpTool(name: TOOL_PREFIX.'list-all-classes', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function listAllClasses(): string
     {
         $output = "# Main classes\n\n";
@@ -46,7 +47,7 @@ class iTopSchemaTools
      * This tool documents the schema (i.e. the list of all the fields) of a specified class in iTop.
      * @param string $className The name of the class for which to retrieve schema information
      */
-    #[McpTool(name: TOOL_PREFIX.'get-class-schema')]
+    #[McpTool(name: TOOL_PREFIX.'get-class-schema', annotations: new ToolAnnotations(null, true, false, true, false))]
     public function getClassSchema(string $className): string
     {
         $info = $this->datamodel->getClassSchema($className);
@@ -79,7 +80,7 @@ class iTopSchemaTools
             $output .= "    - {$code} ({$fieldInfo['label']}), type: {$type}{$mandatory}{$description}\n";
         }
         $workflow = $info['workflow'];
-        if (count($workflow['transitions'])) {
+        if (count($workflow['transitions'] ?? [])) {
             $output .= "\n$className life cycle:\nThe possible values and transitions of the '{$workflow['state_att_code']}' field are the following:\n";
             foreach($workflow['transitions'] as $transition) {
                 $output .= "  $transition";
